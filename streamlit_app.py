@@ -4,24 +4,8 @@ import whisper
 import os
 import torch
 import time
-import subprocess
 
-def check_ffmpeg():
-    try:
-        subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
-        return True
-    except (subprocess.SubprocessError, FileNotFoundError):
-        return False
-
-def install_ffmpeg():
-    try:
-        subprocess.run(['apt-get', 'update'], check=True)
-        subprocess.run(['apt-get', 'install', '-y', 'ffmpeg'], check=True)
-        return True
-    except subprocess.SubprocessError:
-        return False
-
-def download_audio(url, output_path="audio.mp3"):
+def download_audio(url, output_path="audio.mp3", ffmpeg_location=None):
     output_path = output_path.replace('.mp3', '')
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -32,6 +16,9 @@ def download_audio(url, output_path="audio.mp3"):
         }],
         'outtmpl': output_path,
     }
+    
+    if ffmpeg_location:
+        ydl_opts['ffmpeg_location'] = ffmpeg_location
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
@@ -65,15 +52,6 @@ def main():
     st.set_page_config(page_title="YouTube Transcript", page_icon="🎯")
     st.title("YouTube Transcript")
     
-    # Check and install FFmpeg if needed
-    if not check_ffmpeg():
-        st.warning("FFmpeg not found. Attempting to install...")
-        if install_ffmpeg():
-            st.success("FFmpeg installed successfully!")
-        else:
-            st.error("Failed to install FFmpeg. Please contact the administrator.")
-            return
-    
     # Initialize session state
     if 'transcription' not in st.session_state:
         st.session_state.transcription = None
@@ -101,10 +79,10 @@ def main():
     if st.button("Process Video"):
         if url:
             try:
-                audio_path = None  # Initialize audio_path
                 # Download audio
                 with st.spinner("Downloading audio..."):
-                    audio_path = download_audio(url)
+                    ffmpeg_location = st.text_input("Enter FFmpeg location (optional):")
+                    audio_path = download_audio(url, ffmpeg_location=ffmpeg_location)
                     st.session_state.audio_path = audio_path
                     st.success("Audio downloaded successfully!")
                     
