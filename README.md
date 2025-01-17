@@ -1,6 +1,6 @@
-# YouTube Video Transcriber
+# YouTube Transcript
 
-A Streamlit web application that transcribes YouTube videos to text using OpenAI's Whisper model.
+A Streamlit web application that generates transcripts from YouTube videos using OpenAI's Whisper model.
 
 ## Features
 
